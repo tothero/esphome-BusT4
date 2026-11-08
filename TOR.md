@@ -4,6 +4,23 @@ Lokale Steuerung des Schiebetors (Nice Robus RBS400/600/800) über den BiDi-WiFi
 
 Konfiguration: [`tor.yaml`](tor.yaml). Allgemeine Doku der Komponente: [README.md](README.md).
 
+## Branches
+
+- `tor-sugam` (Standard-Branch): Upstream plus `tor.yaml`, diese Doku und folgende noch nicht gemergte Upstream-PRs:
+  - [#39](https://github.com/makstech/esphome-BusT4/pull/39): Robus sendet Status/Encoder-Position während der Fahrt als `0x40` und bestätigt STOP mit `0x88`; ohne den Fix zählt die Anzeige nach einem Stop bis 100 % weiter und die Position ist nur geschätzt.
+- `main`: unverändert wie Upstream (`makstech/esphome-BusT4`), damit sich Upstream per Fast-Forward holen lässt.
+
+Upstream aktualisieren:
+
+```sh
+git remote add upstream git@github.com:makstech/esphome-BusT4.git   # einmalig
+git fetch upstream
+git checkout main && git merge --ff-only upstream/main && git push
+git checkout tor-sugam && git merge main
+```
+
+Ist ein oben genannter PR inzwischen upstream gemergt, meldet git beim Merge ggf. einen Konflikt in denselben Zeilen; dann die Upstream-Fassung nehmen und den PR hier aus der Liste streichen.
+
 ## Funktionsumfang
 
 Bewusst nur Bedienung und Status:
