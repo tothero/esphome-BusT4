@@ -27,6 +27,10 @@ static constexpr uint8_t RX_DRAIN_LIMIT = 64;
 
 static constexpr TickType_t TX_MIN_INTERVAL = pdMS_TO_TICKS(100);
 
+// A frame (max ~64 bytes at 19200 baud, ~33ms) arrives without gaps; silence this long
+// mid-frame means bytes were lost
+static constexpr uint32_t RX_FRAME_TIMEOUT_MS = 50;
+
 void BusT4Component::setup() {
   rxQueue_ = xQueueCreate(32, sizeof(T4Packet));
   if (rxQueue_ == nullptr) {
@@ -166,6 +170,18 @@ void BusT4Component::busTask() {
           rx_state = WAIT_SYNC;
           break;
       }
+    }
+
+    // Drop a half-received frame once the line has been silent too long. Otherwise a lost
+    // byte or a false sync on a 0x55 data byte leaves rx_state outside WAIT_SYNC, which
+    // blocks every transmission below. The control unit only talks when asked (or when it
+    // moves), so nothing would ever complete the frame and the bus stays dead until the
+    // gate is moved by remote.
+    if (rx_state != WAIT_SYNC && millis() - last_rx_ms >= RX_FRAME_TIMEOUT_MS) {
+      ESP_LOGW(TAG, "Discarding incomplete frame (state %d, %u/%u bytes) after %u ms silence",
+               (int) rx_state, (unsigned) packet.size, (unsigned) expected_size,
+               (unsigned) RX_FRAME_TIMEOUT_MS);
+      rx_state = WAIT_SYNC;
     }
 
     // Transmit only between frames, and only once the bus has gone quiet

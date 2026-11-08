@@ -8,6 +8,7 @@ Konfiguration: [`tor.yaml`](tor.yaml). Allgemeine Doku der Komponente: [README.m
 
 - `tor-sugam` (Standard-Branch): Upstream plus `tor.yaml`, diese Doku und folgende noch nicht gemergte Upstream-PRs:
   - [#39](https://github.com/makstech/esphome-BusT4/pull/39): Robus sendet Status/Encoder-Position während der Fahrt als `0x40` und bestätigt STOP mit `0x88`; ohne den Fix zählt die Anzeige nach einem Stop bis 100 % weiter und die Position ist nur geschätzt.
+  - Eigener Fix (noch nicht upstream): Der Bus-Task sendet nur, wenn der Empfänger auf ein neues Frame wartet. Blieb er nach einem verlorenen Byte mitten im Frame hängen, gingen keine Befehle und Abfragen mehr raus, bis die Steuerung von selbst sendete (z. B. bei einer Fahrt per Handsender). Jetzt wird ein unvollständiges Frame nach 50 ms Stille verworfen (`RX_FRAME_TIMEOUT_MS`, Log-Warnung „Discarding incomplete frame“).
 - `main`: unverändert wie Upstream (`makstech/esphome-BusT4`), damit sich Upstream per Fast-Forward holen lässt.
 
 Upstream aktualisieren:
